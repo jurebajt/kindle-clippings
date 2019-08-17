@@ -1,4 +1,5 @@
 *.pyc
-*.txt
 clips.json
 .DS_Store
+output
+My Clippings.txt

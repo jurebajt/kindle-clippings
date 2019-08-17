@@ -26,7 +26,7 @@ def get_clip(section):
         return
 
     clip['book'] = lines[0]
-    match = re.search(r'(\d+)-\d+', lines[1])
+    match = re.search(r'(\d+)(-\d+)?', lines[1])
     if not match:
         return
     position = match.group(1)
@@ -43,11 +43,17 @@ def export_txt(clips):
     """
     for book in clips:
         lines = []
-        for pos in sorted(clips[book]):
-            lines.append(clips[book][pos].encode('utf-8'))
+        for pos in sorted([int(x) for x in clips[book].keys()]):
+            pos_str = str(pos)
+            lines.append(clips[book][pos_str])
 
-        filename = os.path.join(OUTPUT_DIR, u"%s.md" % book)
-        with open(filename, 'wb') as f:
+
+        # creat the output dir if it does not exist
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+        book_name = "".join(x for x in book if (x.isalnum() or x in "._- "))
+        filename = os.path.join(OUTPUT_DIR, u"%s.md" % book_name)
+        with open(filename, 'w', encoding="utf-8") as f:
             f.write("\n\n---\n\n".join(lines))
 
 
@@ -56,7 +62,7 @@ def load_clips():
     Load previous clips from DATA_FILE
     """
     try:
-        with open(DATA_FILE, 'rb') as f:
+        with open(DATA_FILE, 'r') as f:
             return json.load(f)
     except (IOError, ValueError):
         return {}
@@ -66,14 +72,14 @@ def save_clips(clips):
     """
     Save new clips to DATA_FILE
     """
-    with open(DATA_FILE, 'wb') as f:
+    with open(DATA_FILE, 'w') as f:
         json.dump(clips, f)
 
 
 def main():
     # load old clips
     clips = collections.defaultdict(dict)
-    clips.update(load_clips())
+    # clips.update(load_clips())
 
     # extract clips
     sections = get_sections(u'My Clippings.txt')
@@ -86,7 +92,7 @@ def main():
     clips = {k: v for k, v in clips.items() if v}
 
     # save/export clips
-    save_clips(clips)
+    # save_clips(clips)
     export_txt(clips)
 
 
